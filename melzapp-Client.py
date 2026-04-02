@@ -106,4 +106,35 @@ class Networking():
                 "Unable to receive data"
             self.handle_msg(data)
             time.sleep(0.1)
-            
+#RUN THE FUNCTION AS A THREAD
+    def listen(self):
+        self.listen_thread = threading.Thread(target=self.listener)
+        self.listen_thread.daemon = True
+        self.listen_thread.start()
+
+#FINISH UP NETWORKING CLASS
+    def send(self, message):
+        print "Sending: {0}".format(message)
+        try:
+            self.socket.sendall(message)
+        except socket.error:
+            print "Unable to send message"
+    def tidy_up(self):
+        self.listening = False
+        self.socket.close()
+
+        gobject.idle_add(self.window.add_text, "server has quit. \n")
+    def handle_msg(self, data):
+        if data == "QUIT":
+            self.tidy_up()
+        elif data == "":
+            self.tidy_up()
+        else:
+            gobject.idle_add(self.window.add_text, data)
+
+#START THE CLIENT
+if __name__ == "__main__":
+    MainWindow()
+    gtk.amin()
+
+    
