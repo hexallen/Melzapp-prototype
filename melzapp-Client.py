@@ -57,7 +57,53 @@ class MainWindow(gtk.Window):
             return None
 
 #CONFIGURE THE CLIENT
-    
+    def configure(self):
+        server = self.ask_for_info("server_address:port")
+        regex = re.search('^(\d+\.\d+\.\d+\/\d+):(\d+)$' , server)
+        address = regex.group(1).strip()
+        port = regex.group(2).strip()
+#ASK FOR USERNAME
+        self.username = self.ask_for_info("username")
+        self.username_label.set_text(self.username)
 
+#CONNECT AND LISTEN TO SERVER
+        self.network = Networking(self, self.username, address, int(port))
+        self.network.listen()
 
+        def add_text(self, new_text):
+            text_with_timestamp = "{0} {1}".format(datetime.datetime.now(), new_text)
 
+            end_itr = self.text_buffer.get_end_iter()
+
+            self.text_buffer.inser(end_itr, text_with_timestamp)
+        def send_message(self, widget):
+            new_text = self.text_entry.get_text()
+            self.text_entry.set_test("")
+            message = "{0} says: {1}\n".format(self.username, new_text)
+            self.network.send(message)
+        
+        def graceful_quit(self, widget):
+            gtk.main_quit()
+            self.network.send("QUIT")
+            self.network.tidy_up()
+
+#CLIENT'S NETWORKING CLASS
+class Networking():
+    def __init__(self, window, username, server, port):
+
+        self.window = window
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.sonnect((server, port))
+        self.listening = True
+
+        self.send ("USERNAME {0}".format(username))
+    def listener(self):
+        while self.listening:
+            data = ""
+            try:
+                data = self.socket.recv(1024)
+            except socket.error:
+                "Unable to receive data"
+            self.handle_msg(data)
+            time.sleep(0.1)
+            
