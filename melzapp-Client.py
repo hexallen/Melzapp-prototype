@@ -1,5 +1,3 @@
-#Quantum Age Publishing presents: Melzapp - My Personal Messenger
-#CLIENT
 #!/usr/bin/env python3
 
 import threading
